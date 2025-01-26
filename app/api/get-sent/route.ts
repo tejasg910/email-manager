@@ -1,6 +1,7 @@
 import { calculateRange } from '@/lib/pagination'
 import { supabase } from '@/lib/supabse'
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
     try {

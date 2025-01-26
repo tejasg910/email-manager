@@ -1,4 +1,6 @@
 // app/api/dashboard/route.ts
+export const dynamic = 'force-dynamic';
+
 import { getAuthenticatedUser, handleUnauthorized } from '@/lib/authUtils'
 import { supabase } from '@/lib/supabse'
 import { auth } from '@clerk/nextjs/server'
