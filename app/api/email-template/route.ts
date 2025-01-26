@@ -2,6 +2,7 @@ import { getAuthenticatedUser, handleUnauthorized } from '@/lib/authUtils';
 import { calculateRange } from '@/lib/pagination';
 import { supabase } from '@/lib/supabse';
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic'; // Force dynamic route behavior
 
 export async function GET(request: NextRequest) {
   try {

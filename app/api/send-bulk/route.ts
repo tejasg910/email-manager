@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabse';
 import { parseTemplate } from '@/lib/templateParser';
 import { NextRequest, NextResponse } from 'next/server';
 import DOMPurify from 'dompurify'; // Install using: npm install dompurify
-import sanitizeHtml from 'sanitize-html';
 import { createTransporter, verifySmtpCredentials } from '@/lib/nodemailer';
 import CryptoJS from 'crypto-js';
 
@@ -76,7 +75,6 @@ export async function POST(request: NextRequest) {
 
 
 
-    const sanitizedHtml = sanitizeHtml(template.html);
 
     const queue = getQueue(createTransporter);
 
@@ -90,7 +88,7 @@ export async function POST(request: NextRequest) {
         email: email.email,
         password: decryptedSmtpPassword,
         emailId: email.id,
-        templateHtml: sanitizedHtml,
+        templateHtml: template.html,
         subject: template?.subject ? template?.subject : 'Application for Software Engineer',
       }, {
         attempts: 3,

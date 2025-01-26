@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabse"
 import { parseTemplate } from "@/lib/templateParser"
 import { EmailTemplate } from "@/lib/type"
 import { NextRequest, NextResponse } from "next/server"
-import sanitizeHtml from 'sanitize-html';
 import CryptoJS from 'crypto-js';
 
 export async function POST(request: NextRequest) {
@@ -69,7 +68,6 @@ export async function POST(request: NextRequest) {
         if (templateError) throw templateError
         console.log(template, "Thisis template")
 
-        const sanitizedHtml = sanitizeHtml(template.html);
 
       
 
@@ -80,7 +78,7 @@ export async function POST(request: NextRequest) {
             from: process.env.SMTP_FROM,
             to: emailData.email,
             subject: template?.subject,
-            html: sanitizedHtml,
+            html: template.html,
 
         })
 
