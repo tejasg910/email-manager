@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { UserButton, SignInButton, useUser } from '@clerk/clerk-react';
+import { UserButton, SignInButton, useUser, SignOutButton } from '@clerk/clerk-react';
 import { User } from 'lucide-react';
 import Link from 'next/link';
 
@@ -38,6 +38,11 @@ const Navbar = () => {
                 </Button>
               </SignInButton>
             )}
+
+
+            {isSignedIn && <SignOutButton redirectUrl='/' />
+
+            }
           </div>
         </div>
       </div>

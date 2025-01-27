@@ -5,6 +5,7 @@ import { parseTemplate } from "@/lib/templateParser"
 import { EmailTemplate } from "@/lib/type"
 import { NextRequest, NextResponse } from "next/server"
 import CryptoJS from 'crypto-js';
+import sanitizeHtml from 'sanitize-html';
 
 export async function POST(request: NextRequest) {
     try {
@@ -72,13 +73,14 @@ export async function POST(request: NextRequest) {
       
 
         const transporter = createTransporter(user.email, decryptedSmtpPassword);
+    const sanitized = sanitizeHtml(template.html)
 
         // Send email
         await transporter.sendMail({
             from: process.env.SMTP_FROM,
             to: emailData.email,
             subject: template?.subject,
-            html: template.html,
+            html: sanitized,
 
         })
 

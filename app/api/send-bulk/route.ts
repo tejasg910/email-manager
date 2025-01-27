@@ -3,7 +3,7 @@ import { getQueue } from '@/lib/que';
 import { supabase } from '@/lib/supabse';
 import { parseTemplate } from '@/lib/templateParser';
 import { NextRequest, NextResponse } from 'next/server';
-import DOMPurify from 'dompurify'; // Install using: npm install dompurify
+import sanitizeHtml from 'sanitize-html';
 import { createTransporter, verifySmtpCredentials } from '@/lib/nodemailer';
 import CryptoJS from 'crypto-js';
 
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const { emailId, templateId, resumeUrl, githubUrl } = await request.json();
     const campaignId = crypto.randomUUID();
- 
+
 
 
     const user = await getAuthenticatedUser(request)
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
 
 
-
+    const sanitized = sanitizeHtml(template.html)
     const jobs = emails.map(email => {
 
       return queue.add({
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         email: email.email,
         password: decryptedSmtpPassword,
         emailId: email.id,
-        templateHtml: template.html,
+        templateHtml: sanitized,
         subject: template?.subject ? template?.subject : 'Application for Software Engineer',
       }, {
         attempts: 3,
