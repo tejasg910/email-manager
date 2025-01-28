@@ -14,6 +14,14 @@ export async function POST(request: NextRequest) {
 
 
 
+    if (!templateId) {
+      return NextResponse.json(
+        { error: 'Template is not selected' },
+        { status: 400 }
+      );
+    }
+
+
     const user = await getAuthenticatedUser(request)
     if (!user) {
       handleUnauthorized()
@@ -42,7 +50,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
+    console.log("before getting emails")
 
     // Get template
     const { data: template, error: templateError } = await supabase
@@ -50,9 +58,9 @@ export async function POST(request: NextRequest) {
       .select('html, subject')
       .eq('id', templateId)
       .single();
-
+    console.log(templateError, "this is template error ")
     if (templateError) throw templateError;
-
+    console.log(template, "this is template")
     // Get emails
     const { data: emails, error: emailsError } = await supabase
       .from('emails')
@@ -61,7 +69,9 @@ export async function POST(request: NextRequest) {
 
     if (emailsError) throw emailsError;
     if (!emails?.length) throw new Error('No emails found');
-
+    console.log(
+      "before update"
+    )
     // Mark emails as queued
     await supabase
       .from('emails')
@@ -73,12 +83,12 @@ export async function POST(request: NextRequest) {
       .in('id', emailId);
 
 
-
+    console.log("before que")
 
 
     const queue = getQueue(createTransporter);
 
-
+    console.log(queue, "this is que")
 
     const sanitized = sanitizeHtml(template.html)
     const jobs = emails.map(email => {

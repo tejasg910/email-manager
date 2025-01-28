@@ -111,7 +111,7 @@ export default function PendingEmails() {
     try {
       // Use the bulk send endpoint
 
-
+      console.log("came in api request")
       const data = await sendBulkEmails({
         emailId: selectedEmails,
         templateId: requirements.templateId,
@@ -237,7 +237,7 @@ export default function PendingEmails() {
               {isLoading ? (
                 <div className='flex'>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
-                <span>  Sending...</span>
+                  <span>  Sending...</span>
                 </div>
               ) : (
                 'Send Selected'
