@@ -3,6 +3,28 @@ import { supabase } from '@/lib/supabse';
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 
+// Define types for Clerk webhook payload
+interface EmailAddress {
+    email_address: string;
+    id: string;
+    verification: {
+        status: string;
+        strategy: string;
+    };
+}
+
+interface ClerkUserEvent {
+    data: {
+        id: string;
+        email_addresses: EmailAddress[];
+        first_name: string | null;
+        last_name: string | null;
+        primary_email_address_id: string;
+    };
+    object: string;
+    type: string;
+}
+
 export async function POST(request: Request) {
     try {
         const payload = await request.json();
@@ -15,32 +37,49 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing headers' }, { status: 400 });
         }
 
+        // Verify webhook signature
         const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
-        let evt;
+        let evt: ClerkUserEvent;
 
         try {
             evt = wh.verify(JSON.stringify(payload), {
                 'svix-id': svixId,
                 'svix-timestamp': svixTimestamp,
                 'svix-signature': svixSignature,
-            }) as any;
+            }) as ClerkUserEvent;
         } catch (err) {
             console.error('Error verifying webhook:', err);
             return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
         }
-        console.log(evt.data, "this is evt data")
-        const { id, email_addresses, first_name, last_name } = evt.data;
-        const email = email_addresses[0].email_address;
-      
-        // Step 1: Check if a user with the same email already exists
+
+        // Validate required data
+        if (!evt.data || !Array.isArray(evt.data.email_addresses) || evt.data.email_addresses.length === 0) {
+            console.error('Invalid or missing email addresses in webhook payload');
+            return NextResponse.json(
+                { error: 'Invalid webhook payload: missing email addresses' },
+                { status: 400 }
+            );
+        }
+
+        const { id, first_name, last_name } = evt.data;
+        const email = evt.data.email_addresses[0].email_address;
+
+        if (!email) {
+            console.error('No valid email address found in webhook payload');
+            return NextResponse.json(
+                { error: 'Invalid webhook payload: no valid email address' },
+                { status: 400 }
+            );
+        }
+
+        // Check if user exists
         const { data: existingUser, error: fetchError } = await supabase
             .from('users')
             .select('*')
             .eq('email', email)
-            .single(); // Fetch a single record
+            .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') {
-            // PGRST116 means "No rows found", which is fine
             console.error('Error fetching user from Supabase:', fetchError);
             return NextResponse.json(
                 { error: 'Failed to fetch user' },
@@ -48,17 +87,16 @@ export async function POST(request: Request) {
             );
         }
 
-        // Step 2: If the user exists, update their record; otherwise, insert a new user
         if (existingUser) {
-            // Update the existing user
+            // Update existing user
             const { data: updatedUser, error: updateError } = await supabase
                 .from('users')
                 .update({
-                    id,
-                    first_name,
-                    last_name,
+                    clerk_id: id,
+                    first_name: first_name || existingUser.first_name, // Preserve existing if new is null
+                    last_name: last_name || existingUser.last_name, // Preserve existing if new is null
                 })
-                .eq('email', email) // Update where email matches
+                .eq('email', email)
                 .select();
 
             if (updateError) {
@@ -71,15 +109,14 @@ export async function POST(request: Request) {
 
             return NextResponse.json({ success: true, data: updatedUser });
         } else {
-            // Insert a new user
+            // Insert new user
             const { data: newUser, error: insertError } = await supabase
                 .from('users')
                 .insert([
                     {
-
                         email,
-                        first_name,
-                        last_name,
+                        first_name: first_name || '',
+                        last_name: last_name || '',
                         clerk_id: id
                     },
                 ])
