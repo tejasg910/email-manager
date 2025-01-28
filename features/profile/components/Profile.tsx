@@ -34,9 +34,9 @@ export default function ProfilePage() {
     useEffect(() => {
         if (profile && !initialized.current) {
             setFormState({
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                smtpPassword: profile.smtpPassword
+                firstName: profile?.firstName || "",
+                lastName: profile?.lastName || "",
+                smtpPassword: profile?.smtpPassword || ""
             });
             initialized.current = true;
         }
