@@ -28,9 +28,10 @@ export async function POST(request: Request) {
             console.error('Error verifying webhook:', err);
             return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
         }
+        console.log(evt.data, "this is evt data")
         const { id, email_addresses, first_name, last_name } = evt.data;
         const email = email_addresses[0].email_address;
-        console.log(evt.data, "this is evt data")
+      
         // Step 1: Check if a user with the same email already exists
         const { data: existingUser, error: fetchError } = await supabase
             .from('users')
