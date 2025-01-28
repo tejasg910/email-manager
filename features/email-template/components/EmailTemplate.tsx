@@ -85,8 +85,14 @@ export default function EmailTemplates() {
 
     const handleCreateTemplate = async (name: string, subject: string, html: string) => {
         try {
-            await createTemplate(name, subject, html);
-            success("created successfully")
+            const res = await createTemplate(name, subject, html);
+
+            if (res?.error) {
+                error(res.error || "failed to create ")
+            } else {
+                success("created successfully")
+            }
+
 
         } catch (err) {
             error("Failed to create")
@@ -232,8 +238,8 @@ export default function EmailTemplates() {
                                     ],
                                 }}
                             />
-                            <Button 
-                            
+                            <Button
+
                                 onClick={handleSaveTemplate}
                                 className="w-full bg-indigo-600 hover:bg-indigo-700"
                             >
