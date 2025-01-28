@@ -10,7 +10,7 @@ import sanitizeHtml from 'sanitize-html';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { emailId, templateId, resumeUrl, githubUrl } = body;
+        const { emailId, templateId } = body;
 
 
         const user  =await  getAuthenticatedUser(request);

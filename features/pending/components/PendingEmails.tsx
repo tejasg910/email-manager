@@ -44,20 +44,16 @@ export default function PendingEmails() {
 
   const validateSendRequirements = () => {
     const templateId = localStorage.getItem('selectedTemplateId')
-    const resumeUrl = localStorage.getItem('driveLink')
-    const githubUrl = localStorage.getItem('githubUrl')
+    // const resumeUrl = localStorage.getItem('driveLink')
+    // const githubUrl = localStorage.getItem('githubUrl')
 
     if (!templateId) {
-      showToast('Template Required', 'Please select an email template first', 'error')
+      error('Template Required')
       return false
     }
 
-    if (!resumeUrl) {
-      showToast('Resume Required', 'Please add your resume link first', 'error')
-      return false
-    }
 
-    return { templateId, resumeUrl, githubUrl }
+    return { templateId }
   }
 
   const handleSelectAll = () => {
@@ -88,8 +84,7 @@ export default function PendingEmails() {
       await sendEmail({
         emailId: id,
         templateId: requirements.templateId,
-        resumeUrl: requirements.resumeUrl,
-        githubUrl: requirements.githubUrl
+      
       })
 
 
@@ -115,8 +110,7 @@ export default function PendingEmails() {
       const data = await sendBulkEmails({
         emailId: selectedEmails,
         templateId: requirements.templateId,
-        resumeUrl: requirements.resumeUrl,
-        githubUrl: requirements.githubUrl
+      
       });
 
       if (data?.success) {

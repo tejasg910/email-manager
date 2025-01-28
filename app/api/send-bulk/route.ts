@@ -9,7 +9,7 @@ import CryptoJS from 'crypto-js';
 
 export async function POST(request: NextRequest) {
   try {
-    const { emailId, templateId, resumeUrl, githubUrl } = await request.json();
+    const { emailId, templateId } = await request.json();
     const campaignId = crypto.randomUUID();
 
 

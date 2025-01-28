@@ -10,8 +10,7 @@ export const useSendEmail = () => {
     return async (data: {
         emailId: string,
         templateId: string,
-        resumeUrl: string,
-        githubUrl: string | null
+       
     }) => {
         try {
             const response = await fetch(`${API_BASE_URL}`, {
@@ -52,8 +51,7 @@ export const useSendBulkEmail = () => {
     return async (ids: {
         emailId: string[],
         templateId: string,
-        resumeUrl: string,
-        githubUrl: string | null
+      
     }) => {
         try {
             const response = await fetch(`${SEND_BULK}`, {
