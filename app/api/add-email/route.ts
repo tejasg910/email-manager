@@ -26,6 +26,7 @@ export async function POST(req: Request) {
         const { data: existingEmails } = await supabase
             .from('emails')
             .select('email')
+            .eq("user_id", user.id)
             .in('email', emails)
 
         // Filter out existing emails
