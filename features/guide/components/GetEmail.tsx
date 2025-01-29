@@ -1,17 +1,19 @@
 "use client"
 import { Chrome, ClipboardCopy, Linkedin, ScrollText } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-react-toast'
 
 export default function EmailExtractionGuide() {
+
+    const { error, success } = useToast()
     const searchQuery = '"Your Target Role" AND "@"'
 
     const handleCopyQuery = async () => {
         try {
             await navigator.clipboard.writeText(searchQuery)
-            toast.success("Search query copied to clipboard!")
-        } catch (error) {
-            toast.error("Failed to copy query")
+            success("Search query copied to clipboard!")
+        } catch (err) {
+            error("Failed to copy query")
         }
     }
 
@@ -76,7 +78,7 @@ export default function EmailExtractionGuide() {
                                 onClick={handleCopyQuery}
                                 className="hover:bg-gray-200"
                             >
-                                <ClipboardCopy className="w-4 h-4 mr-2" />
+                                <ClipboardCopy className="w-4 h-4 " />
                                 Copy
                             </Button>
                         </div>

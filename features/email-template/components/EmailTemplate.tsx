@@ -146,15 +146,7 @@ export default function EmailTemplates() {
                                         {selectedTemplateId === template.id ? 'Selected' : 'Select Template'}
                                     </Button>
 
-                                    <Button
-                                        onClick={() => togglePreview(template.id)}
-                                        variant="ghost"
-                                        size="icon"
-                                        className="p-2 hover:bg-gray-100 text-indigo-600 text:bg-indigo-700"
-                                        aria-label={previewedTemplateId === template.id ? 'Close preview' : 'Preview'}
-                                    >
-                                        {previewedTemplateId === template.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </Button>
+                          
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -177,15 +169,7 @@ export default function EmailTemplates() {
                                     </Button>
                                 </div>
 
-                                {previewedTemplateId === template.id && (
-                                    <div className="mt-4 border-t pt-4">
-                                        <h3 className="text-lg font-bold mb-2">Full Template Preview</h3>
-                                        <div
-                                            className="prose max-h-96 overflow-y-auto border p-4 rounded-md"
-                                            dangerouslySetInnerHTML={{ __html: template.html }}
-                                        />
-                                    </div>
-                                )}
+                               
                             </CardContent>
                         </Card>
                     ))}

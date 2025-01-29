@@ -24,13 +24,13 @@ interface PaginationResponse {
 }
 
 export default function SentEmails() {
-  const { emails, isLoading: loadingemails, error: getemailsError } = useGetSentEmails()
+  // const { emails, isLoading: loadingemails, error: getemailsError } = useGetSentEmails()
 
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
+  const [error, setError] = useState<string | null>(null);
+  const [emails, setEmails] = useState<Email[]>([])
   useEffect(() => {
     const fetchEmails = async () => {
       setIsLoading(true)
@@ -41,7 +41,8 @@ export default function SentEmails() {
 
         const data: PaginationResponse = await response.json()
 
-        setTotalPages(data.pagination.totalPages)
+        setTotalPages(data.pagination.totalPages);
+        setEmails(data.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load emails')
       } finally {
@@ -66,7 +67,7 @@ export default function SentEmails() {
 
       <Dashboard />
 
-      {loadingemails ? (
+      {isLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
         </div>

@@ -216,7 +216,7 @@ export default function PendingEmails() {
       <Toast.Provider swipeDirection="right">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Pending Emails</h2>
-          <div className="space-x-2">
+          <div className="space-x-4">
             <button
               onClick={handleSelectAll}
               className="px-4 py-2 border rounded-md hover:bg-gray-50"
@@ -246,7 +246,7 @@ export default function PendingEmails() {
               key={email.id}
               className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm"
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4">
                 <Checkbox.Root
                   className="flex h-5 w-5 items-center justify-center rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50"
                   checked={selectedEmails.includes(email.id)}
@@ -259,7 +259,7 @@ export default function PendingEmails() {
                 </Checkbox.Root>
                 <span className="font-medium">{email.email}</span>
               </div>
-              <div className="space-x-2">
+              <div className="space-x-4">
                 <button
                   onClick={() => handleSendIndividual(email.id)}
                   disabled={isSending[email.id]}
@@ -277,7 +277,7 @@ export default function PendingEmails() {
                 <button
                   onClick={() => handleRemove(email.id)}
                   disabled={isSending[email.id]}
-                  className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                  className="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                 >
                   Remove
                 </button>
