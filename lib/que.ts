@@ -28,6 +28,11 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
             console.error(`⨯ Email ${job.data.emailId} failed:`, error);
         });
 
+        emailQueue.on('error', (error) => {
+
+            console.error('Email queue error:', error);
+        })
+
         // Process jobs
         emailQueue.process(async (job) => {
             const { email, templateHtml, subject, emailId, from, password } = job.data;
