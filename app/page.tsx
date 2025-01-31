@@ -18,15 +18,15 @@ export default function LandingPage() {
             Create, customize, and send bulk emails effortlessly. Streamline your communication with powerful template management and intelligent sending tools.
           </p>
           <div className="flex space-x-4">
-            <Button className="bg-indigo-600 hover:bg-indigo-700">
-              <Link href="/manage">
+            <Link href="/manage" className="bg-indigo-600 rounded-md text-white px-4 py-2 hover:bg-indigo-700">
 
-                Start For Free
-              </Link>
-            </Button>
-            <Button variant="outline" className="border-indigo-600 text-indigo-600">
+
+              Start For Free
+
+            </Link>
+            <Link href={"https://youtu.be/JJl_vUrfEzY"} target='_blank' className=" border px-4 py-2 rounded-md border-indigo-600  text-indigo-600">
               Watch Demo
-            </Button>
+            </Link>
           </div>
         </div>
         <div className=" mt-10 md:mt-0">
