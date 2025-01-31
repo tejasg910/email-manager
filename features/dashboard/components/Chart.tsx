@@ -15,7 +15,7 @@ const chartData = [
 const Chart = ({data}: { data:{day: string, emails: number}[] }) => {
     return (
 
-        <Card className="mx-6">
+        <Card className="">
             <CardHeader>
                 <CardTitle>Weekly Email Activity</CardTitle>
             </CardHeader>

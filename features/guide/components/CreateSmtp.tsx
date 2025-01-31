@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Verify from "@/assets/verfication.png"
 import CreateApp from "@/assets/createapp.png"
 import CopyApp from "@/assets/copycode.png"
+import Link from 'next/link';
 export default function SMTPGuidePage() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8 mt-20">
@@ -90,14 +91,14 @@ export default function SMTPGuidePage() {
       </div>
 
       <div className="text-center space-y-4">
-        <Button size="lg">
+        <Link href="/manage" className=" bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-white hover:text-black border border-indigo-600">
           I've Saved My Password - Continue to Dashboard
-        </Button>
+        </Link>
         <p className="text-sm text-gray-500">
           Need help? Contact our
-          <a href="/support" className="text-blue-600 hover:underline ml-1">
+          <Link href="/contact" className="text-blue-600 hover:underline ml-1">
             support team
-          </a>
+          </Link>
         </p>
       </div>
     </div>
