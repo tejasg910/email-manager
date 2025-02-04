@@ -9,8 +9,8 @@ import { ToastContainer, Bounce } from 'react-toastify';
 import Footer from '../components/footer/Footer';
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Target Trail Mailer',
+  description: 'Ease your email campaigns with Target Trail Mailer',
 }
 
 export default function RootLayout({
@@ -37,8 +37,8 @@ export default function RootLayout({
           transition={Bounce}
         />
         <body className='flex flex-col min-h-screen'>
-        <main className="flex-1">
-          {children}
+          <main className="flex-1">
+            {children}
           </main>
           <Footer />
         </body>
