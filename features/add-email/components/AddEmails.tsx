@@ -13,10 +13,11 @@ export default function AddEmails() {
   const [emailList, setEmailList] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [summary, setSummary] = useState({ added: [], skipped: [] });
-const addEmails = useAddEmail()
+  const [loading, setLoading] = useState(false);
+  const addEmails = useAddEmail()
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setLoading(true)
     // Split by newlines or spaces and remove duplicates using Set
     const emails = [...new Set(
       emailList.split(/[\n\s]+/)
@@ -34,6 +35,8 @@ const addEmails = useAddEmail()
       setEmailList('');
     } catch (error) {
       console.error('Error adding emails:', error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -48,7 +51,7 @@ const addEmails = useAddEmail()
           className="mb-4 "
           rows={10}
         />
-        <Button type="submit" className='bg-indigo-600 hover:bg-indigo-700'>Add Emails</Button>
+        <Button type="submit" className='bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50' disabled={loading}>{loading ? "Adding..." : "Add Emails"} </Button>
       </form>
 
 
