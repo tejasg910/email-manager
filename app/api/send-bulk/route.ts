@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const { emailId, templateId } = await request.json();
     const campaignId = crypto.randomUUID();
-
+console.log(emailId, "this is email id")
 
 
     if (!templateId) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
+console.log("before user")
 
     const user = await getAuthenticatedUser(request)
     if (!user) {
@@ -30,19 +30,21 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    console.log("before smtp password")
     if (!user.smtp_password) {
       return NextResponse.json(
         { error: 'Please add smtp pasword' },
         { status: 400 }
       );
     }
-
+    console.log("before decrypted smtp password")
 
     const decryptedSmtpPassword = CryptoJS.AES.decrypt(
       user.smtp_password,
       process.env.ENCRYPTION_KEY!
     ).toString(CryptoJS.enc.Utf8);
-
+    console.log("before is smtp valid")
     const isSmtpValid = await verifySmtpCredentials(user.email, decryptedSmtpPassword);
     if (!isSmtpValid) {
       return NextResponse.json(
