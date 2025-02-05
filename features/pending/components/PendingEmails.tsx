@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
 import * as Toast from '@radix-ui/react-toast'
 import { CheckIcon, Loader2 } from "lucide-react"
 
 
 import { Progress } from "@/components/ui/progress";
-import { useDeleteEmail, useGetPendingEmails, useSendBulkEmail, useSendEmail } from '../api/usePendingMails'
+import { useDeleteEmail, useGetPendingEmails, useSendBulkEmail, useSendEmail, useStopQueue } from '../api/usePendingMails'
 import { useToast } from '@/hooks/use-react-toast';
+import { Button } from '@/components/ui/button';
 interface Email {
   id: string
   email: string
@@ -24,11 +25,13 @@ export default function PendingEmails() {
   const [toastMessage, setToastMessage] = useState({ title: '', description: '', type: 'success' })
   const [percentage, setPercentage] = useState(0);
   const [sendingEmails, setSendingEmails] = useState(false)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const sendEmail = useSendEmail();
   const sendBulkEmails = useSendBulkEmail();
-
+  const campaignId = localStorage.getItem("campaignId");
+  const campaignPercent = localStorage.getItem("campaignPercent");
   const deleteEmail = useDeleteEmail()
-
+  const stopQueue = useStopQueue()
   const { error, success } = useToast()
 
 
@@ -39,6 +42,44 @@ export default function PendingEmails() {
     setToastMessage({ title, description, type })
     setToastOpen(true)
   }
+
+
+
+
+  const startPolling = (campaignId: string) => {
+    intervalRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/campain/${campaignId}`);
+        if (res.ok) {
+          const status = await res.json();
+          setPercentage(status.stats.percentage);
+
+          if (status.isComplete) {
+            stopPolling();
+            success('Emails sent successfully');
+            mutate();
+            localStorage.removeItem("campaignId");
+            setShowPercent(false);
+          }
+        } else {
+          setShowPercent(false)
+          throw new Error('Status fetch failed');
+        }
+      } catch (fetchError) {
+        stopPolling();
+        error('Failed to track email status');
+        localStorage.removeItem("campaignId");
+        setShowPercent(false);
+      }
+    }, 2000);
+  };
+
+  const stopPolling = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
 
 
 
@@ -103,81 +144,28 @@ export default function PendingEmails() {
   }
 
   const handleSendAll = async () => {
-
     const requirements = validateSendRequirements()
     if (!requirements) return
 
     setIsLoading(true)
     try {
-      // Use the bulk send endpoint
-
-      console.log("came in api request")
       const data = await sendBulkEmails({
         emailId: selectedEmails,
         templateId: requirements.templateId,
-
       });
 
       if (data?.success) {
-        setShowPercent(true)
-
         console.log(data, "this is data")
-
-
-        const interval = setInterval(async () => {
-
-          const res = await fetch(`/api/campain/${data?.campaignId}`);
-          console.log(res.status, "this is tstauts")
-
-
-          if (res.status === 200) {
-
-
-            const status = await res.json();
-
-
-            // Update your UI with status.stats
-            updateProgress(status.stats.percentage);
-
-            if (status.isComplete) {
-              success(
-
-                `Emails sent successfully`
-              );
-              mutate()
-              clearInterval(interval);
-              // showComplete();
-              setShowPercent(false)
-            }
-          } else {
-            clearInterval(interval);
-            setShowPercent(false);
-
-            error("Failed to send emails")
-          }
-        }, 2000);
-
-
-        // Update UI based on results
-
-
-        setSelectedEmails([])
-
-      } else {
-        error(data?.error)
+        localStorage.setItem("campaignId", data?.campaignId);
+        setShowPercent(true)
+        startPolling(data.campaignId)
       }
-
     } catch (err) {
-      error(
-
-        error instanceof Error ? error?.message : 'Failed to send emails',
-        'error'
-      )
+      error(err instanceof Error ? err.message : 'Failed to send emails');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
-
   const handleRemove = async (id: string) => {
     try {
       await deleteEmail(id)
@@ -187,13 +175,21 @@ export default function PendingEmails() {
       error('Failed to remove email')
     }
   }
-  console.log(emails, "this is pending emails")
 
+  const handleStopQueue = async () => {
+    try {
+      localStorage.removeItem("campaignId");
+      setShowPercent(false)
+      await stopQueue("clear")
+    } catch (err) {
+      error('Failed to stop queue')
+    }
+  }
 
 
 
   if (showPercent) {
-    return <EmailProgressBar percentage={percentage} />
+    return <EmailProgressBar handleStopQueue={handleStopQueue} percentage={percentage} />
   }
 
 
@@ -207,7 +203,7 @@ export default function PendingEmails() {
   }
 
 
-  if (loadingemails) {
+  if (loadingemails || !emails) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
@@ -234,8 +230,8 @@ export default function PendingEmails() {
               disabled={selectedEmails.length === 0 || isLoading}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
-                <div className='flex'>
+              {isLoading  ? (
+                <div className='flex items-center'>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
                   <span>  Sending...</span>
                 </div>
@@ -313,7 +309,8 @@ export default function PendingEmails() {
 
 
 
-const EmailProgressBar = ({ percentage }: { percentage: number }) => {
+const EmailProgressBar = ({ percentage, handleStopQueue }: { percentage: number, handleStopQueue: () => Promise<void> }) => {
+
   return (
     <div className="w-full max-w-md mx-auto p-4 bg-white rounded-lg shadow-sm">
       <div className="space-y-2">
@@ -326,6 +323,8 @@ const EmailProgressBar = ({ percentage }: { percentage: number }) => {
           {percentage < 100 ? 'Processing emails...' : 'Complete!'}
         </p>
       </div>
+
+  
     </div>
   );
 };

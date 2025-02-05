@@ -41,7 +41,7 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
                 console.log('Creating transporter with:', { from, passwordLength: password.length });
                 console.log('Attempting to send email:', { to: email, from, password });
                 const transporter = await createTransporter(from, password);
-                console.log('Attempting to send email:', { to: email, from, password });
+                console.log('Attempting to send email:', { to: email, from, password, emailId });
 
                 // Update status to sending
                 await supabase
