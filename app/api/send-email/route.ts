@@ -6,6 +6,7 @@ import { EmailTemplate } from "@/lib/type"
 import { NextRequest, NextResponse } from "next/server"
 import CryptoJS from 'crypto-js';
 import sanitizeHtml from 'sanitize-html';
+import { getBlackListByEmail } from "@/lib/blackList"
 
 export async function POST(request: NextRequest) {
     try {
@@ -13,36 +14,36 @@ export async function POST(request: NextRequest) {
         const { emailId, templateId } = body;
 
 
-        const user  =await  getAuthenticatedUser(request);
+        const user = await getAuthenticatedUser(request);
 
 
-           if (!user) {
-              handleUnauthorized()
-              return NextResponse.json(
+        if (!user) {
+            handleUnauthorized()
+            return NextResponse.json(
                 { error: 'Unauthorized: User not authenticated or not found in Supabase' },
                 { status: 401 }
-              );
-            }
+            );
+        }
 
 
-            if(!user.smtp_password){
-                return     NextResponse.json(
-                    { error: 'Please add smtp pasword' },
-                    { status: 400 }
-                  );
-            }
+        if (!user.smtp_password) {
+            return NextResponse.json(
+                { error: 'Please add smtp pasword' },
+                { status: 400 }
+            );
+        }
 
-            const decryptedSmtpPassword = CryptoJS.AES.decrypt(
-                user.smtp_password, 
-                process.env.ENCRYPTION_KEY!
-              ).toString(CryptoJS.enc.Utf8);
-             const isSmtpValid = await verifySmtpCredentials(user.email, decryptedSmtpPassword);
-                if (!isSmtpValid) {
-                  return NextResponse.json(
-                    { error: 'Invalid SMTP credentials' },
-                    { status: 400 }
-                  );
-                }
+        const decryptedSmtpPassword = CryptoJS.AES.decrypt(
+            user.smtp_password,
+            process.env.ENCRYPTION_KEY!
+        ).toString(CryptoJS.enc.Utf8);
+        const isSmtpValid = await verifySmtpCredentials(user.email, decryptedSmtpPassword);
+        if (!isSmtpValid) {
+            return NextResponse.json(
+                { error: 'Invalid SMTP credentials' },
+                { status: 400 }
+            );
+        }
         console.log(body, "This is email id")
         // Fetch the email address using emailId
         const { data: emailData, error: emailError } = await supabase
@@ -52,6 +53,10 @@ export async function POST(request: NextRequest) {
             .eq('sent', false)  // Ensure you only get emails where 'sent' is false
             .single()
 
+        const blackList = await getBlackListByEmail(emailData?.email, user.id);
+        if (blackList) {
+            return NextResponse.json({ error: 'Email is in blacklist' }, { status: 400 })
+        }
 
 
 
@@ -70,10 +75,10 @@ export async function POST(request: NextRequest) {
         console.log(template, "Thisis template")
 
 
-      
+
 
         const transporter = createTransporter(user.email, decryptedSmtpPassword);
-    const sanitized = sanitizeHtml(template.html)
+        const sanitized = sanitizeHtml(template.html)
 
         // Send email
         await transporter.sendMail({

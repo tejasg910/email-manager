@@ -24,6 +24,14 @@ const Navbar = () => {
             {isSignedIn ? (
               <>
                 {/* Navigation Links for Signed In Users */}
+
+
+                <Link
+                  href="/black-list"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  Black List
+                </Link>
                 <Link
                   href="/manage"
                   className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors"

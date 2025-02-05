@@ -1,5 +1,6 @@
 // pages/api/add-emails.ts
 import { getAuthenticatedUser, handleUnauthorized } from '@/lib/authUtils';
+import { getBlackList } from '@/lib/blackList';
 import { supabase } from '@/lib/supabse'
 import { Console } from 'console';
 import { NextResponse } from 'next/server'
@@ -42,7 +43,16 @@ export async function POST(req: Request) {
             }, { status: 400 })
         }
 
-        const emailRecords = newEmails.map((email: string) => ({
+
+
+        const blackListedEmails = await getBlackList(user.id);
+
+        const blackListedEmailsSet = new Set(blackListedEmails?.map(e => e.email))
+
+        const filteredEmails = newEmails.filter((email: string) => !blackListedEmailsSet.has(email))
+
+
+        const emailRecords = filteredEmails.map((email: string) => ({
             email,
             sent: false,
             user_id: user.id
@@ -58,7 +68,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             data,
-            addedEmails: newEmails,
+            addedEmails: filteredEmails,
             skippedEmails: emails.filter((email: string) => existingEmailSet.has(email))
         }, { status: 200 })
     } catch (error) {

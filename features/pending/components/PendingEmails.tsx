@@ -81,15 +81,20 @@ export default function PendingEmails() {
     setIsSending(prev => ({ ...prev, [id]: true }))
     try {
 
-      await sendEmail({
+      const res = await sendEmail({
         emailId: id,
         templateId: requirements.templateId,
-      
+
       })
 
 
+      if (res?.error) {
+        error(res?.error || "failed to send")
+      } else {
 
-      success('Email sent successfully')
+
+        success('Email sent successfully')
+      }
     } catch (err) {
       error('Failed to send email', 'error')
     } finally {
@@ -110,7 +115,7 @@ export default function PendingEmails() {
       const data = await sendBulkEmails({
         emailId: selectedEmails,
         templateId: requirements.templateId,
-      
+
       });
 
       if (data?.success) {
