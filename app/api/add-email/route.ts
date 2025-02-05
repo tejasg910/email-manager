@@ -60,19 +60,11 @@ export async function POST(req: Request) {
 
         const { data, error } = await supabase
             .from('emails')
-            .upsert(emailRecords, { 
-                onConflict: 'user_id,email',  
-                ignoreDuplicates: true 
-            })
+            .insert(emailRecords)
             .select()
 
-
         if (error) throw error
-
-
- 
-
-    if (error) throw error
+        
 
         return NextResponse.json({
             success: true,
