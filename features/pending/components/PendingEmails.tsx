@@ -60,7 +60,7 @@ export default function PendingEmails() {
     setSelectedEmails(
       selectedEmails.length === emails.length
         ? []
-        : emails.map(email => email.id)
+        : emails.slice(0, 100).map(email => email.id)
     )
   }
 
@@ -222,6 +222,7 @@ export default function PendingEmails() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Pending Emails</h2>
           <div className="space-x-4">
+            <span>{selectedEmails.length} / {emails.length} Selected</span>
             <button
               onClick={handleSelectAll}
               className="px-4 py-2 border rounded-md hover:bg-gray-50"
