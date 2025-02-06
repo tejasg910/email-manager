@@ -18,7 +18,16 @@ export async function POST(req: Request) {
     }
 
     const { data, error } = await supabase.from("email_blacklist").insert({ email, user_id: user.id });
+
+
+    if (error) {
+
+        console.log(error, "This is error")
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
     return NextResponse.json({ success: true, data, error });
+
 }
 
 
@@ -34,7 +43,7 @@ export async function GET(req: Request) {
         );
     }
 
-    const { data, error } = await supabase.from("email_blacklist").select("*").eq("user_id", user.id);  
+    const { data, error } = await supabase.from("email_blacklist").select("*").eq("user_id", user.id);
     return NextResponse.json({ data, error });
 }
 
