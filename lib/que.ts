@@ -60,7 +60,7 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
                 console.log('Attempting to send email:', { to: email, from, password, emailId });
 
                 // Update status to sending
-           
+
 
                 // Send email
                 await transporter.sendMail({
@@ -83,7 +83,7 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
                 return { success: true, emailId };
             } catch (error) {
                 // Update failed status
-
+                console.log(error, "This is error")
                 await supabase
                     .from('emails')
                     .update({
@@ -91,7 +91,7 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
                         status: 'failed',
                     })
                     .eq('id', emailId);
-               
+
 
 
 
