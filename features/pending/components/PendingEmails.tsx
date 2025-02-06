@@ -230,7 +230,7 @@ export default function PendingEmails() {
               disabled={selectedEmails.length === 0 || isLoading}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading  ? (
+              {isLoading ? (
                 <div className='flex items-center'>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
                   <span>  Sending...</span>
@@ -262,6 +262,7 @@ export default function PendingEmails() {
                 <span className="font-medium">{email.email}</span>
               </div>
               <div className="space-x-4">
+                <span className={`${email.status === 'failed' ? 'text-red-500' : 'text-yellow-500'}`}>{email.status}</span>
                 <button
                   onClick={() => handleSendIndividual(email.id)}
                   disabled={isSending[email.id]}
@@ -324,7 +325,7 @@ const EmailProgressBar = ({ percentage, handleStopQueue }: { percentage: number,
         </p>
       </div>
 
-  
+
     </div>
   );
 };

@@ -11,7 +11,7 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
             redis: {
                 host: process.env.REDIS_HOST,
                 port: parseInt(process.env.REDIS_PORT!),
-                password: process.env.REDIS_PASSWORD
+                // password: process.env.REDIS_PASSWORD
             },
             limiter: {
                 max: 15, // Max jobs per time window
@@ -19,19 +19,35 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
             }
         });
 
-        // Add event listeners (only added once due to singleton)
+
+        emailQueue.getJobCounts().then(counts => {
+            console.log('Current queue status:', counts);
+        });
+
+        // Log when jobs are added
+        emailQueue.on('waiting', (jobId) => {
+            console.log(`Job ${jobId} has been added to the queue`);
+        });
+
+        // Log job lifecycle
+        emailQueue.on('active', (job) => {
+            console.log(`⚡ Processing job ${job.id} for email ${job.data.emailId}`);
+        });
+
+        emailQueue.on('progress', (job, progress) => {
+            console.log(`📈 Job ${job.id} is ${progress}% complete`);
+        });
+
         emailQueue.on('completed', (job) => {
-            console.log(`✓ Email ${job.data.emailId} sent successfully`);
+            console.log(`✓ Job ${job.id} completed successfully`);
         });
 
         emailQueue.on('failed', (job, error) => {
-            console.error(`⨯ Email ${job.data.emailId} failed:`, error);
+            console.error(`⨯ Job ${job.id} failed:`, error);
         });
 
-        emailQueue.on('error', (error) => {
 
-            console.error('Email queue error:', error);
-        })
+        console.log('Registering queue processor...');
 
         // Process jobs
         emailQueue.process(async (job) => {
@@ -44,10 +60,7 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
                 console.log('Attempting to send email:', { to: email, from, password, emailId });
 
                 // Update status to sending
-                await supabase
-                    .from('emails')
-                    .update({ status: 'sending' })
-                    .eq('id', emailId);
+           
 
                 // Send email
                 await transporter.sendMail({
@@ -70,22 +83,24 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
                 return { success: true, emailId };
             } catch (error) {
                 // Update failed status
-                console.error('Detailed email send error:', {
-                    emailId,
-                    error: error instanceof Error ? error.message : error,
-                    stack: error instanceof Error ? error.stack : 'No stack trace'
-                });
+
                 await supabase
                     .from('emails')
                     .update({
+
                         status: 'failed',
-                        error: error instanceof Error ? error.message : 'Send failed'
                     })
                     .eq('id', emailId);
+               
 
-                throw error;
+
+
             }
         });
+
+
+        console.log('Queue processor registered');
+
     }
 
     return emailQueue;

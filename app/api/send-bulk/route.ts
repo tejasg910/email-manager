@@ -90,7 +90,6 @@ console.log("before user")
 
     const queue = getQueue(createTransporter);
 
-    console.log(queue, "this is que")
 
     const sanitized = sanitizeHtml(template.html)
     const jobs = emails.map(email => {
@@ -100,6 +99,7 @@ console.log("before user")
         email: email.email,
         password: decryptedSmtpPassword,
         emailId: email.id,
+        campaignId: campaignId,
         templateHtml: sanitized,
         subject: template?.subject ? template?.subject : 'Application for Software Engineer',
       }, {

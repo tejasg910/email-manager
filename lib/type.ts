@@ -12,6 +12,7 @@ export type Email = {
   email: string
   sent: boolean
   created_at: string
+  status: string
 }
 
 

@@ -54,6 +54,8 @@ export async function POST(request: NextRequest) {
             .single()
 
         const blackList = await getBlackListByEmail(emailData?.email, user.id);
+
+        console.log(blackList, "This is black list")
         if (blackList) {
             return NextResponse.json({ error: 'Email is in blacklist' }, { status: 400 })
         }
