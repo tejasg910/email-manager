@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabse';
 import { getAuthenticatedUser, handleUnauthorized } from '@/lib/authUtils';
-
+import { v4 as uuidv4 } from 'uuid';
 export async function POST(request: Request) {
     try {
         // Get authenticated user ID from Clerk
@@ -27,13 +27,16 @@ export async function POST(request: Request) {
         }
 
         // Create template with user_id from your database
+
+        const id = uuidv4();
         const { data, error } = await supabase
             .from('email_templates')
             .insert([{
                 user_id: user.id,
                 subject,
                 name,
-                html
+                html,
+                id
             }])
             .select();
 
