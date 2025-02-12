@@ -8,6 +8,9 @@ import Navbar from '../components/navbar/Navbar'
 import { ToastContainer, Bounce } from 'react-toastify';
 import Footer from '../components/footer/Footer';
 
+
+
+
 export const metadata: Metadata = {
   title: 'Target Trail Mailer',
   description: 'Ease your email campaigns with Target Trail Mailer',

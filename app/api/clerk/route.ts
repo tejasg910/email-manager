@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabse';
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
-
+import { v4 as uuidv4 } from 'uuid';
 // Define types for Clerk webhook payload
 interface EmailAddress {
     email_address: string;
@@ -110,33 +110,38 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: true, data: updatedUser });
         } else {
             // Insert new user
+
+            const userId = uuidv4();
+
             const { data: newUser, error: insertError } = await supabase
                 .from('users')
                 .insert([
                     {
-                        email,
-                        first_name: first_name || '',
-                        last_name: last_name || '',
-                        clerk_id: id
+                        id: userId, // Add the UUID here
+
+                    email,
+                    first_name: first_name || '',
+                    last_name: last_name || '',
+                    clerk_id: id
                     },
                 ])
                 .select();
 
-            if (insertError) {
-                console.error('Error inserting user in Supabase:', insertError);
-                return NextResponse.json(
-                    { error: 'Failed to insert user' },
-                    { status: 500 }
-                );
-            }
-
-            return NextResponse.json({ success: true, data: newUser });
+        if (insertError) {
+            console.error('Error inserting user in Supabase:', insertError);
+            return NextResponse.json(
+                { error: 'Failed to insert user' },
+                { status: 500 }
+            );
         }
-    } catch (error) {
-        console.error('Error processing webhook:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+
+        return NextResponse.json({ success: true, data: newUser });
     }
+    } catch (error) {
+    console.error('Error processing webhook:', error);
+    return NextResponse.json(
+        { error: 'Internal Server Error' },
+        { status: 500 }
+    );
+}
 }
