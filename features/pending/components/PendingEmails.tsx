@@ -12,6 +12,7 @@ interface Email {
   id: string
   email: string
   sent: boolean
+  status?: 'queued' | 'sending' | 'sent' | 'failed' | 'cancelled'
 }
 
 export default function PendingEmails() {

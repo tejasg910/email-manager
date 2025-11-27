@@ -1,16 +1,18 @@
 import { getAuthenticatedUser, handleUnauthorized } from '@/lib/authUtils';
 import { getQueue } from '@/lib/que';
 import { supabase } from '@/lib/supabse';
-import { parseTemplate } from '@/lib/templateParser';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import sanitizeHtml from 'sanitize-html';
 import { createTransporter, verifySmtpCredentials } from '@/lib/nodemailer';
 import CryptoJS from 'crypto-js';
 
+export const runtime = 'nodejs';
+type BulkPayload = { emailId: string[]; templateId: string };
+
 export async function POST(request: NextRequest) {
   try {
-    const { emailId, templateId } = await request.json();
+    const { emailId, templateId }: BulkPayload = await request.json();
     const campaignId = randomUUID();
 console.log(emailId, "this is email id")
 
@@ -92,7 +94,7 @@ console.log("before user")
     const queue = getQueue(createTransporter);
 
 
-    const sanitized = sanitizeHtml(template.html)
+    const sanitized = sanitizeHtml(template?.html ?? '')
     const jobs = emails.map((email: { id: string; email: string }) => ({
       name: 'send-email',
       data: {
@@ -112,15 +114,18 @@ console.log("before user")
         }
       }
     }));
-
-    // Use bulk enqueue to minimize Redis roundtrips and return quickly
-    if (jobs.length > 0 && typeof (queue as any).addBulk === 'function') {
-      await (queue as any).addBulk(jobs);
-    } else {
-      for (const j of jobs) {
-        await queue.add(j.data, j.opts);
+    const enqueue = async () => {
+      if (jobs.length > 0 && typeof (queue as any).addBulk === 'function') {
+        await (queue as any).addBulk(jobs);
+      } else {
+        const chunkSize = 100;
+        for (let i = 0; i < jobs.length; i += chunkSize) {
+          const chunk = jobs.slice(i, i + chunkSize);
+          await Promise.all(chunk.map(j => (queue as any).add(j.name, j.data, j.opts)));
+        }
       }
-    }
+    };
+    setTimeout(() => { enqueue().catch(console.error); }, 0);
 
     return NextResponse.json({
       success: true,
