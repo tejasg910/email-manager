@@ -15,13 +15,13 @@ export async function GET(
   
       if (statsError) throw statsError;
   
-      const summary = stats.reduce((acc, curr) => {
+      const summary = stats.reduce((acc: Record<string, number>, curr: { status: string }) => {
         acc[curr.status] = (acc[curr.status] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
   
       const total = stats.length;
-      const completed = (summary.sent || 0) + (summary.failed || 0);
+      const completed = (summary.sent || 0) + (summary.failed || 0) + (summary.cancelled || 0);
   
       return NextResponse.json({
         isComplete: completed === total,
@@ -31,7 +31,7 @@ export async function GET(
           sending: summary.sending || 0,
           sent: summary.sent || 0,
           failed: summary.failed || 0,
-          percentage: Math.round((completed / total) * 100)
+          percentage: total > 0 ? Math.round((completed / total) * 100) : 0
         }
       });
   

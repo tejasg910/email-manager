@@ -25,7 +25,7 @@ export default function PendingEmails() {
   const [toastMessage, setToastMessage] = useState({ title: '', description: '', type: 'success' })
   const [percentage, setPercentage] = useState(0);
   const [sendingEmails, setSendingEmails] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const sendEmail = useSendEmail();
   const sendBulkEmails = useSendBulkEmail();
   const campaignId = localStorage.getItem("campaignId");

@@ -3,6 +3,7 @@ import { getQueue } from '@/lib/que';
 import { supabase } from '@/lib/supabse';
 import { parseTemplate } from '@/lib/templateParser';
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import sanitizeHtml from 'sanitize-html';
 import { createTransporter, verifySmtpCredentials } from '@/lib/nodemailer';
 import CryptoJS from 'crypto-js';
@@ -10,7 +11,7 @@ import CryptoJS from 'crypto-js';
 export async function POST(request: NextRequest) {
   try {
     const { emailId, templateId } = await request.json();
-    const campaignId = crypto.randomUUID();
+    const campaignId = randomUUID();
 console.log(emailId, "this is email id")
 
 
@@ -92,9 +93,9 @@ console.log("before user")
 
 
     const sanitized = sanitizeHtml(template.html)
-    const jobs = emails.map(email => {
-
-      return queue.add({
+    const jobs = emails.map((email: { id: string; email: string }) => ({
+      name: 'send-email',
+      data: {
         from: user.email,
         email: email.email,
         password: decryptedSmtpPassword,
@@ -102,16 +103,24 @@ console.log("before user")
         campaignId: campaignId,
         templateHtml: sanitized,
         subject: template?.subject ? template?.subject : 'Application for Software Engineer',
-      }, {
+      },
+      opts: {
         attempts: 3,
         backoff: {
           type: 'exponential',
           delay: 60000
         }
-      });
-    });
+      }
+    }));
 
-    await Promise.all(jobs);
+    // Use bulk enqueue to minimize Redis roundtrips and return quickly
+    if (jobs.length > 0 && typeof (queue as any).addBulk === 'function') {
+      await (queue as any).addBulk(jobs);
+    } else {
+      for (const j of jobs) {
+        await queue.add(j.data, j.opts);
+      }
+    }
 
     return NextResponse.json({
       success: true,
