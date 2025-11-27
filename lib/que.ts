@@ -54,6 +54,7 @@ export function getQueue(createTransporter: (smtpUser: string, smtpPass: string)
 
         if (process.env.NODE_ENV !== 'production') {
             worker = new Worker('email-queue', async (job) => {
+                console.log("came in quey")
                 const { email, templateHtml, subject, emailId, from, password } = job.data as {
                     email: string; templateHtml: string; subject: string; emailId: string; from: string; password: string;
                 };

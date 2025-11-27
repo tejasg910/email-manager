@@ -114,15 +114,12 @@ console.log("before user")
         }
       }
     }));
+
+    console.log(jobs.length, "this is jobs")
+ 
     if (jobs.length > 0) {
-      if (typeof (queue as any).addBulk === 'function') {
-        await (queue as any).addBulk(jobs);
-      } else {
-        const chunkSize = 100;
-        for (let i = 0; i < jobs.length; i += chunkSize) {
-          const chunk = jobs.slice(i, i + chunkSize);
-          await Promise.all(chunk.map(j => (queue as any).add(j.name, j.data, j.opts)));
-        }
+      for (const j of jobs) {
+        (queue as any).add(j.name, j.data, j.opts).catch(console.error);
       }
     }
 
