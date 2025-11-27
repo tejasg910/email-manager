@@ -114,8 +114,8 @@ console.log("before user")
         }
       }
     }));
-    const enqueue = async () => {
-      if (jobs.length > 0 && typeof (queue as any).addBulk === 'function') {
+    if (jobs.length > 0) {
+      if (typeof (queue as any).addBulk === 'function') {
         await (queue as any).addBulk(jobs);
       } else {
         const chunkSize = 100;
@@ -124,8 +124,7 @@ console.log("before user")
           await Promise.all(chunk.map(j => (queue as any).add(j.name, j.data, j.opts)));
         }
       }
-    };
-    setTimeout(() => { enqueue().catch(console.error); }, 0);
+    }
 
     return NextResponse.json({
       success: true,
