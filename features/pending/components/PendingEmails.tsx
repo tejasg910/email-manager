@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
 import * as Toast from '@radix-ui/react-toast'
 import { CheckIcon, Loader2 } from "lucide-react"
-
+import { supabaseBrowser } from '@/lib/supabase-browser'
+import { RealtimeChannel } from '@supabase/supabase-js'
 
 import { Progress } from "@/components/ui/progress";
 import { useDeleteEmail, useGetPendingEmails, useSendBulkEmail, useSendEmail, useStopQueue } from '../api/usePendingMails'
@@ -25,18 +26,21 @@ export default function PendingEmails() {
   const [toastOpen, setToastOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState({ title: '', description: '', type: 'success' })
   const [percentage, setPercentage] = useState(0);
-  const [sendingEmails, setSendingEmails] = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const channelRef = useRef<RealtimeChannel | null>(null)
+  const completedRef = useRef(0)
+  const totalRef = useRef(0)
   const sendEmail = useSendEmail();
   const sendBulkEmails = useSendBulkEmail();
-  const campaignId = localStorage.getItem("campaignId");
-  const campaignPercent = localStorage.getItem("campaignPercent");
   const deleteEmail = useDeleteEmail()
   const stopQueue = useStopQueue()
   const { error, success } = useToast()
 
 
   const [showPercent, setShowPercent] = useState(false)
+
+  useEffect(() => {
+    return () => { stopTracking() }
+  }, [])
 
 
   const showToast = (title: string, description: string, type: 'success' | 'error' = 'success') => {
@@ -47,38 +51,43 @@ export default function PendingEmails() {
 
 
 
-  const startPolling = (campaignId: string) => {
-    intervalRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/campain/${campaignId}`);
-        if (res.ok) {
-          const status = await res.json();
-          setPercentage(status.stats.percentage);
+  const startTracking = (campaignId: string, total: number) => {
+    completedRef.current = 0;
+    totalRef.current = total;
 
-          if (status.isComplete) {
-            stopPolling();
-            success('Emails sent successfully');
-            mutate();
-            localStorage.removeItem("campaignId");
-            setShowPercent(false);
+    channelRef.current = supabaseBrowser
+      .channel(`campaign-${campaignId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'emails',
+          filter: `campaign_id=eq.${campaignId}`,
+        },
+        (payload) => {
+          const status = payload.new?.status;
+          if (status === 'sent' || status === 'failed' || status === 'cancelled') {
+            completedRef.current += 1;
+            const pct = Math.round((completedRef.current / totalRef.current) * 100);
+            setPercentage(pct);
+
+            if (completedRef.current >= totalRef.current) {
+              stopTracking();
+              success('Emails sent successfully');
+              mutate();
+              setShowPercent(false);
+            }
           }
-        } else {
-          setShowPercent(false)
-          throw new Error('Status fetch failed');
         }
-      } catch (fetchError) {
-        stopPolling();
-        error('Failed to track email status');
-        localStorage.removeItem("campaignId");
-        setShowPercent(false);
-      }
-    }, 2000);
+      )
+      .subscribe();
   };
 
-  const stopPolling = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+  const stopTracking = () => {
+    if (channelRef.current) {
+      supabaseBrowser.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
   };
 
@@ -156,10 +165,8 @@ export default function PendingEmails() {
       });
 
       if (data?.success) {
-        console.log(data, "this is data")
-        localStorage.setItem("campaignId", data?.campaignId);
         setShowPercent(true)
-        startPolling(data.campaignId)
+        startTracking(data.campaignId, data.queuedCount)
       }
     } catch (err) {
       error(err instanceof Error ? err.message : 'Failed to send emails');
@@ -179,11 +186,11 @@ export default function PendingEmails() {
 
   const handleStopQueue = async () => {
     try {
-      localStorage.removeItem("campaignId");
-      setShowPercent(false)
-      await stopQueue("clear")
+      stopTracking();
+      setShowPercent(false);
+      await stopQueue("clear");
     } catch (err) {
-      error('Failed to stop queue')
+      error('Failed to stop queue');
     }
   }
 
