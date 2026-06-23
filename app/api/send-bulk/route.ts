@@ -4,8 +4,6 @@ import { supabase } from '@/lib/supabse';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import sanitizeHtml from 'sanitize-html';
-import { verifySmtpCredentials } from '@/lib/nodemailer';
-import CryptoJS from 'crypto-js';
 
 export const runtime = 'nodejs';
 
@@ -28,16 +26,6 @@ export async function POST(request: NextRequest) {
 
     if (!user.smtp_password) {
       return NextResponse.json({ error: 'Please add smtp password' }, { status: 400 });
-    }
-
-    const decryptedSmtpPassword = CryptoJS.AES.decrypt(
-      user.smtp_password,
-      process.env.ENCRYPTION_KEY!
-    ).toString(CryptoJS.enc.Utf8);
-
-    const isSmtpValid = await verifySmtpCredentials(user.email, decryptedSmtpPassword);
-    if (!isSmtpValid) {
-      return NextResponse.json({ error: 'Invalid SMTP credentials' }, { status: 400 });
     }
 
     const { data: template, error: templateError } = await supabase
