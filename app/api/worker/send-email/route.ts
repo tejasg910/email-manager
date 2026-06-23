@@ -1,10 +1,10 @@
-import { verifySignatureAppRouter } from '@upstash/qstash/nextjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabse';
 import { createTransporter } from '@/lib/nodemailer';
 import CryptoJS from 'crypto-js';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 interface JobPayload {
   from: string;
@@ -51,4 +51,4 @@ async function handler(request: NextRequest) {
   }
 }
 
-export const POST = verifySignatureAppRouter(handler);
+export const POST = handler;
